@@ -12,7 +12,7 @@ path_db = "data/DB"
 
 #Choose the embedding model
 #model_name = "sentence-transformers/all-MiniLM-L6-v2"
-model_name = "/home/codelformat/shared_models/sentence-t5-large"
+model_name = "sentence-transformers/sentence-t5-large"
 
 embedding_function = SentenceTransformerEmbeddings(model_name=model_name, model_kwargs={"device": "cuda"})
 
