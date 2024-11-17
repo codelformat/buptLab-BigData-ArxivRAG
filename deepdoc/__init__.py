@@ -1,0 +1,1 @@
+from deepdoc.parser.pdf_parser import RAGFlowPdfParser

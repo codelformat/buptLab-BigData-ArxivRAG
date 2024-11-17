@@ -58,14 +58,12 @@ from langchain.schema import(
 
 #Facility Step 3:用特定模型做embedding
 from langchain.embeddings import HuggingFaceEmbeddings
-model_name = "sentence-transformers/sentence-t5-large"
+model_name = "/home/codelformat/shared_models/sentence-t5-large"
 #model_name = "sentence-transformers/all-MiniLM-L6-v2"
 embedding = HuggingFaceEmbeddings(model_name=model_name, model_kwargs={"device": "cuda"})
 
 # load DB from disk
 vectorstore = Chroma(persist_directory=path_db, embedding_function=embedding)
-
-#------------------Now from here we need a chat to discuss with me --------------------
 
 def agent_execute(query, chat_history=[]):
     global augment_prompt, llm
