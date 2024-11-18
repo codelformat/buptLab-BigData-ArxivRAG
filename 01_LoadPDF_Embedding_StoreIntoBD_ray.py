@@ -159,33 +159,6 @@ class SemanticParagraphSplitter:
         chunks = self.cut_chunks(indices_above_thresh, sentences)
         return chunks
 
-# def read_pdf_files_in_folder_onebyone_and_Store(path_docfolder, path_db, embedding):
-#     # Iterate over all files in the folder
-#     for filename in os.listdir(path_docfolder):
-#         #print(filename)
-#         if filename.endswith('.txt'):  # Check if the file is a txt
-#             file_path = os.path.join(path_docfolder, filename)
-#             print(f"Reading file: {file_path}")
-
-#             # Open the PDF file
-#             with open(file_path, 'r', encoding='utf-8') as file:
-#                 pages = file.read()
-
-#                 text_splitter = SemanticParagraphSplitter(threshold=THRESHOLD)
-#                 # text_splitter = RecursiveCharacterTextSplitter(
-#                 #     chunk_size=260,
-#                 #     chunk_overlap=20,
-#                 # )
-#                 docs = text_splitter.split(pages)
-
-#                 # Facility Step 3:用特定模型做embedding
-#                 #db2 = Chroma.from_documents(docs, embedding, persist_directory=path_db)
-#                 Chroma.from_texts(docs, embedding_function, persist_directory=path_db)
-#                 print("Successfully save the embedding into DB")
-#     return True
-
-# ... existing code until SemanticParagraphSplitter class ...
-
 @ray.remote(num_gpus=1)
 def process_single_file(file_path: str, embedding_function, path_db: str, threshold: int) -> bool:
     """Process a single file in parallel"""

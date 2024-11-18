@@ -4,29 +4,17 @@ import os
 import numpy as np
 from ltp import StnSplit
 from sentence_transformers import SentenceTransformer
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma, Milvus
 from langchain_community.embeddings.sentence_transformer import (SentenceTransformerEmbeddings,)
-from langchain_openai import OpenAIEmbeddings
 
-from dotenv import load_dotenv
-load_dotenv() # load the environment variables from .env file
 
-path_docfolder = "data/test_rep"
-path_db = "./data/DB"
+path_db = "data/ChromaDB"
 
 #Choose the embedding model
 #model_name = "sentence-transformers/all-MiniLM-L6-v2"
-model_name = "/home/codelformat/shared_models/sentence-t5-large"
+model_name = "/home/codelformat/shared_models/bge-m3"
 
 embedding_function = SentenceTransformerEmbeddings(model_name=model_name, model_kwargs={"device": "cuda"})
-
-# embedding_function = OpenAIEmbeddings(
-#     model="text-embedding-3-large"
-#     # With the `text-embedding-3` class
-#     # of models, you can specify the size
-#     # of the embeddings you want returned.
-#     # dimensions=1024
-# )
 
 #here is the setting for the size of chunk, 100 is one article only one chunk
 THRESHOLD = 70
@@ -159,13 +147,15 @@ def read_pdf_files_in_folder_onebyone_and_Store(path_docfolder, path_db, embeddi
     # Iterate over all files in the folder
     for filename in os.listdir(path_docfolder):
         #print(filename)
-        if filename.endswith('.txt'):  # Check if the file is a txt
+        if filename.endswith('.pdf'):  # Check if the file is a PDF
             file_path = os.path.join(path_docfolder, filename)
             print(f"Reading file: {file_path}")
 
             # Open the PDF file
-            with open(file_path, 'r', encoding='utf-8') as file:
-                pages = file.read()
+            with open(file_path, 'rb') as file:
+                loader = PyPDFLoader(file_path)
+                pages_pypdf = loader.load()
+                pages = pages_pypdf[0].page_content
 
                 text_splitter = SemanticParagraphSplitter(threshold=THRESHOLD)
                 # text_splitter = RecursiveCharacterTextSplitter(
@@ -176,8 +166,18 @@ def read_pdf_files_in_folder_onebyone_and_Store(path_docfolder, path_db, embeddi
 
                 # Facility Step 3:用特定模型做embedding
                 #db2 = Chroma.from_documents(docs, embedding, persist_directory=path_db)
-                Chroma.from_texts(docs, embedding_function, persist_directory=path_db)
+                db2 = Chroma.from_texts(docs, embedding, persist_directory=path_db)
                 print("Successfully save the embedding into DB")
     return True
 
+import argparse
+
+parser = argparse.ArgumentParser(description="Process some integers.")
+parser.add_argument("--path_docfolder", type=str, default="Artificial_Intelligence", help="The path of the folder containing the PDFs")
+args = parser.parse_args()
+path_docfolder = f"data/arxiv_pdfs/{args.path_docfolder}"
+
+
 read_pdf_files_in_folder_onebyone_and_Store(path_docfolder, path_db, embedding_function)
+
+#------------------Now from here we need a chat to discuss with me --------------------
