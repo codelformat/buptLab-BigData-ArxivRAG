@@ -21,9 +21,13 @@ vector_store = Chroma(persist_directory=path_db, embedding_function=embedding_fu
 app = FastAPI()
 
 # 加载模型路径
+# if model_path exits, load it, otherwise use the default path
 MODEL_PATH = "/home/codelformat/shared_models/bge-m3"
-# 加载嵌入模型
-model = SentenceTransformer(MODEL_PATH)
+if os.path.exists(MODEL_PATH):
+    # 加载嵌入模型
+    model = SentenceTransformer(MODEL_PATH)
+else:
+    model = SentenceTransformer('BAAI/bge-m3')
 
 # 请求体模型
 class QueryRequest(BaseModel):
