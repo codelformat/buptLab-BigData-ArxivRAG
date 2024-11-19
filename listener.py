@@ -6,6 +6,8 @@ from sentence_transformers import SentenceTransformer
 from langchain.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.embeddings.sentence_transformer import (SentenceTransformerEmbeddings,)
+from FlagEmbedding import FlagReranker
+reranker = FlagReranker('/home/codelformat/shared_models/bge-reranker-v2-m3', use_fp16=True) # Setting use_fp16 to True speeds up computation with a slight performance degradation
 
 path_db = "data/ChromaDB"
 
@@ -32,16 +34,29 @@ else:
 # 请求体模型
 class QueryRequest(BaseModel):
     query: str
-    top_k: int = 5  # 返回最相似的K个结果，默认5个
+    top_k: int = 50  # 返回最相似的K个结果，默认50个
 
 # 将输入字符串向量化并查询Chroma数据库
-def query_chroma_db(query_text, top_k=5):
+def query_chroma_db(query_text, top_k=50):
     # 使用模型将输入字符串转化为向量
     query_embedding = model.encode([query_text])[0]
 
     # 查询Chroma数据库，获得最相似的文本
     results = vector_store.similarity_search(query_text,k=top_k)
-    source_knowledge = "\n".join([x.page_content for x in results])
+    
+    # 使用reranker对结果进行重排序
+    # 返回score最高的top_n个结果
+    top_n = 5
+    scores = []
+    for result in results:
+        score = reranker.compute_score([query_text, result.page_content], normalize=True)
+        scores.append({'score': score, 'content': result.page_content})
+
+    # 按分数排序
+    scores.sort(key=lambda x: x['score'], reverse=True)
+    results = [x['content'] for x in scores[:top_n]]
+
+    source_knowledge = "\n".join(results)
 
     return source_knowledge
 
