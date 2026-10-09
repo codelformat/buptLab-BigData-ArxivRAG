@@ -20,7 +20,7 @@ import os
 class QueryProcessor:
     def __init__(self):
         self.client = OpenAI(
-            api_key="REDACTED",
+            api_key=os.environ.get("MINIMAX_API_KEY", ""),
             base_url="https://api.minimax.chat/v1"
         )
         
